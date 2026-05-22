@@ -21,7 +21,8 @@ import {
   QrCode,
   Trash2,
   AlertTriangle,
-  User
+  User,
+  Database
 } from 'lucide-react';
 import { Member, Expense, Group, CategorySpec } from './types';
 import { INITIAL_GROUPS, CATEGORIES } from './data/mockData';
@@ -37,6 +38,9 @@ import PaymentSettingsModal from './components/PaymentSettingsModal';
 import GroupInviteModal, { getGroupInviteCode } from './components/GroupInviteModal';
 import JoinGroupModal from './components/JoinGroupModal';
 import AccountSettingsModal from './components/AccountSettingsModal';
+import SupabaseSyncModal from './components/SupabaseSyncModal';
+import { isSupabaseConfigured } from './lib/supabaseClient';
+
 
 export default function App() {
   // Authentication State
@@ -71,6 +75,7 @@ export default function App() {
   const [expenseToDeleteId, setExpenseToDeleteId] = useState<string | null>(null);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isAccountSettingsOpen, setIsAccountSettingsOpen] = useState(false);
+  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [expenseToEdit, setExpenseToEdit] = useState<Expense | null>(null);
 
@@ -570,6 +575,17 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Supabase Status & Sync Integration */}
+            <button
+              onClick={() => setIsSupabaseModalOpen(true)}
+              className="p-1.5 px-2.5 rounded-xl border border-indigo-500/10 dark:border-indigo-500/25 bg-indigo-50/40 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100/50 dark:hover:bg-indigo-955/30 transition-all font-semibold flex items-center gap-1.5 text-xs cursor-pointer shadow-sm"
+              title="Setup Supabase Schema or sync groups dynamically with cloud"
+              id="btn-trigger-supabase"
+            >
+              <Database size={13} className="text-emerald-500 animate-pulse shrink-0" />
+              <span className="hidden md:inline">Supabase DB</span>
+            </button>
+
             {/* Account Settings button */}
             <button
               onClick={() => setIsAccountSettingsOpen(true)}
@@ -1351,6 +1367,17 @@ export default function App() {
         onClose={() => setIsAccountSettingsOpen(false)}
         user={user}
         onUpdateAccount={handleUpdateAccount}
+      />
+
+      <SupabaseSyncModal
+        isOpen={isSupabaseModalOpen}
+        onClose={() => setIsSupabaseModalOpen(false)}
+        groups={groups}
+        onSyncComplete={(syncedGroups, message) => {
+          setGroups(syncedGroups);
+          triggerToast(message);
+          setIsSupabaseModalOpen(false);
+        }}
       />
     </div>
   );
