@@ -80,6 +80,14 @@ export default function App() {
 
   // Sync state with local storage
   useEffect(() => {
+    if (user) {
+      localStorage.setItem('spliit_auth_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('spliit_auth_user');
+    }
+  }, [user]);
+
+  useEffect(() => {
     localStorage.setItem('spliit_groups_multi', JSON.stringify(groups));
   }, [groups]);
 
