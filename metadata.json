@@ -1,0 +1,6 @@
+{
+  "name": "Spliit",
+  "description": "A modern, beautiful, and intuitive bill-splitting and smart-settlement dashboard with a Fintech-Chic vibe.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
