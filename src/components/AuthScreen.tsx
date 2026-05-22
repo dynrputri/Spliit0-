@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Mail, Lock, User, LogIn, Compass, ArrowRight } from 'lucide-react';
+import { Sparkles, Mail, Lock, User, LogIn, Compass, ArrowRight, Database } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 interface AuthScreenProps {
   onLogin: (user: { email: string; fullName: string }) => void;
@@ -14,7 +15,7 @@ export default function AuthScreen({ onLogin, triggerToast }: AuthScreenProps) {
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || (!isLogin && !fullName)) {
       triggerToast('Please fill out all required fields');
@@ -22,16 +23,82 @@ export default function AuthScreen({ onLogin, triggerToast }: AuthScreenProps) {
     }
 
     setIsLoading(true);
-    // Simulate loading for sleek experience
-    setTimeout(() => {
-      setIsLoading(false);
-      const user = {
-        email: email.trim(),
-        fullName: isLogin ? (email.split('@')[0] || 'User') : fullName.trim()
-      };
-      onLogin(user);
-      triggerToast(isLogin ? `Welcome back, ${user.fullName}!` : `Account created! Welcome, ${user.fullName}`);
-    }, 1000);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        if (isLogin) {
+          // Real Supabase sign in
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+          });
+
+          if (error) {
+            triggerToast(error.message);
+            setIsLoading(false);
+            return;
+          }
+
+          if (data.user) {
+            const userName = data.user.user_metadata?.fullName || data.user.user_metadata?.full_name || email.split('@')[0];
+            const loggedInUser = {
+              email: data.user.email || email.trim(),
+              fullName: userName,
+            };
+            onLogin(loggedInUser);
+            triggerToast(`Welcome back, ${userName}!`);
+          }
+        } else {
+          // Real Supabase sign up
+          const { data, error } = await supabase.auth.signUp({
+            email: email.trim(),
+            password,
+            options: {
+              data: {
+                fullName: fullName.trim(),
+              }
+            }
+          });
+
+          if (error) {
+            triggerToast(error.message);
+            setIsLoading(false);
+            return;
+          }
+
+          if (data.user) {
+            const userName = fullName.trim();
+            const loggedInUser = {
+              email: data.user.email || email.trim(),
+              fullName: userName,
+            };
+            
+            // Note: If email confirmation is enabled on Supabase, they might need to confirm.
+            if (!data.session) {
+              triggerToast('Account created! Logging you in...');
+            } else {
+              triggerToast(`Account created! Welcome, ${userName}`);
+            }
+            onLogin(loggedInUser);
+          }
+        }
+      } catch (err: any) {
+        triggerToast(err?.message || 'Dashboard authorization connection error.');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Simulate loading for sleek experience offline fallback
+      setTimeout(() => {
+        setIsLoading(false);
+        const user = {
+          email: email.trim(),
+          fullName: isLogin ? (email.split('@')[0] || 'User') : fullName.trim()
+        };
+        onLogin(user);
+        triggerToast(isLogin ? `Welcome back, ${user.fullName}!` : `Account created! Welcome, ${user.fullName}`);
+      }, 1000);
+    }
   };
 
   const handleGuestLogin = () => {
@@ -85,6 +152,14 @@ export default function AuthScreen({ onLogin, triggerToast }: AuthScreenProps) {
           transition={{ type: 'spring', damping: 25, stiffness: 200, delay: 0.25 }}
           className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 shadow-2xl backdrop-blur-xl space-y-6"
         >
+          {/* Supabase Status Indicator Badge */}
+          {isSupabaseConfigured && (
+            <div className="flex items-center justify-center gap-1.5 py-1 px-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 w-fit mx-auto text-[10px] font-black tracking-widest text-emerald-400 uppercase">
+              <Database size={11} className="animate-pulse" />
+              <span>Supabase Cloud Auth Connected</span>
+            </div>
+          )}
+
           <div className="flex border-b border-slate-800 pb-4">
             <button
               onClick={() => setIsLogin(true)}
