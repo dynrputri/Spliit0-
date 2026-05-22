@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Mail, Lock, User, LogIn, Compass, ArrowRight, Database } from 'lucide-react';
+import { Sparkles, Mail, Lock, User, LogIn, Compass, ArrowRight } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 interface AuthScreenProps {
@@ -152,14 +152,6 @@ export default function AuthScreen({ onLogin, triggerToast }: AuthScreenProps) {
           transition={{ type: 'spring', damping: 25, stiffness: 200, delay: 0.25 }}
           className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 shadow-2xl backdrop-blur-xl space-y-6"
         >
-          {/* Supabase Status Indicator Badge */}
-          {isSupabaseConfigured && (
-            <div className="flex items-center justify-center gap-1.5 py-1 px-3 bg-emerald-500/10 rounded-full border border-emerald-500/20 w-fit mx-auto text-[10px] font-black tracking-widest text-emerald-400 uppercase">
-              <Database size={11} className="animate-pulse" />
-              <span>Supabase Cloud Auth Connected</span>
-            </div>
-          )}
-
           <div className="flex border-b border-slate-800 pb-4">
             <button
               onClick={() => setIsLogin(true)}
