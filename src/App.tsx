@@ -44,7 +44,7 @@ import { isSupabaseConfigured } from './lib/supabaseClient';
 
 export default function App() {
   // Authentication State
-  const [user, setUser] = useState<{ email: string; fullName: string } | null>(() => {
+  const [user, setUser] = useState<{ email: string; fullName: string; avatarUrl?: string } | null>(() => {
     const saved = localStorage.getItem('spliit_auth_user');
     return saved ? JSON.parse(saved) : null;
   });
